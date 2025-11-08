@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../store/auth";
+import { useAuth } from "../store/useAuth";
 import { h2, input, btn, card } from "../ui";
 
 export default function SignIn() {

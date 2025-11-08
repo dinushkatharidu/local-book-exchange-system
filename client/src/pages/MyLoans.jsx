@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
-import { useAuth } from "../store/auth";
+import { useAuth } from "../store/useAuth";
 import { h2, btn, card, empty } from "../ui";
 
 export default function MyLoans() {

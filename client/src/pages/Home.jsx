@@ -1,9 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "../api/client";
-import BookCard from "../components/BookCard";
-import { h1, input, btn, card, empty } from "../ui";
+import { h1, input, btn, card, skeleton, empty } from "../ui.js";
+import { Link } from "react-router-dom";
+import { useAuth } from "../store/useAuth";
 
 export default function Home() {
+  const { user } = useAuth();
   const [q, setQ] = useState("");
   const [city, setCity] = useState("");
   const [list, setList] = useState([]);
@@ -11,41 +13,85 @@ export default function Home() {
 
   const fetchList = useCallback(async () => {
     setLoading(true);
-    const params = {};
-    if (q) params.q = q;
-    if (city) params.city = city;
-    const res = await api.get("/api/books", { params });
-    setList(res.data);
+    const res = await api.get("/api/books");
+    let books = res.data || [];
+    if (q)
+      books = books.filter(
+        (b) =>
+          (b.title || "").toLowerCase().includes(q.toLowerCase()) ||
+          (b.author || "").toLowerCase().includes(q.toLowerCase())
+      );
+    if (city)
+      books = books.filter((b) =>
+        (b.location || "").toLowerCase().includes(city.toLowerCase())
+      );
+    setList(books);
     setLoading(false);
   }, [q, city]);
 
-  useEffect(() => { fetchList(); }, [fetchList]);
+  useEffect(() => {
+    fetchList();
+  }, [fetchList]);
 
   return (
-    <div className="space-y-6">
-      <h1 className={h1}>Available Books</h1>
-
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <input className={`${input} sm:w-80`} placeholder="Search title/author" value={q} onChange={e=>setQ(e.target.value)}/>
-        <input className={`${input} sm:w-56`} placeholder="City" value={city} onChange={e=>setCity(e.target.value)}/>
-        <button className={btn} onClick={fetchList}>Search</button>
+    <div className="space-y-8">
+      <div className={`${card} p-6 md:p-8`}>
+        <h1 className={h1}>Available Books</h1>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <input
+            className={`${input} sm:w-80`}
+            placeholder="Search by title or author"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+          <input
+            className={`${input} sm:w-56`}
+            placeholder="City"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+          />
+          <button className={btn} onClick={fetchList}>
+            Search
+          </button>
+          {user && (
+            <Link className={btn} to="/add">
+              + Add Book
+            </Link>
+          )}
+        </div>
       </div>
 
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2">
-          {[...Array(4)].map((_,i)=>(
-            <div key={i} className={`${card} p-4 animate-pulse`}>
-              <div className="h-5 w-40 rounded bg-slate-200" />
-              <div className="mt-2 h-4 w-24 rounded bg-slate-200" />
-              <div className="mt-4 h-4 w-full rounded bg-slate-200" />
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className={`${card} p-4`}>
+              <div className={`${skeleton} h-5 w-40`} />
+              <div className={`${skeleton} mt-2 h-4 w-24`} />
+              <div className={`${skeleton} mt-4 h-4 w-full`} />
             </div>
           ))}
         </div>
       ) : list.length === 0 ? (
-        <div className={empty}>No books found. Try another search or add your first book after signing in.</div>
+        <div className={empty}>No books found.</div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {list.map(b => <BookCard key={b._id} book={b} />)}
+          {list.map((b) => (
+            <div key={b._id} className={`${card} p-4`}>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-lg font-semibold">{b.title}</div>
+                  <div className="text-sm text-slate-500">
+                    by {b.author} • {b.location || "—"} • {b.condition}
+                  </div>
+                  {b.description && (
+                    <p className="mt-2 text-slate-700">
+                      {b.description.slice(0, 140)}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

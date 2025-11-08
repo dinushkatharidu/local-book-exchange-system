@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "../api/client";
-import { useAuth } from "../store/auth";
+import { useAuth } from "../store/useAuth";
 import { btn, card } from "../ui";
 
 export default function BookDetail() {

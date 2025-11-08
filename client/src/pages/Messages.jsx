@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
 import ChatPane from "../components/ChatPane";
-import { useAuth } from "../store/auth";
+import { useAuth } from "../store/useAuth";
 import { card, btn, empty } from "../ui";
 
 export default function Messages() {
