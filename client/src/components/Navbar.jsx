@@ -18,7 +18,7 @@ export default function Navbar() {
         <nav className="ml-auto flex items-center gap-2">
           {user ? (
             <>
-              <Link className={btn} to="/me/books">
+              <Link className={btn} to="/my-books">
                 My Books
               </Link>
               <Link className={btn} to="/me/loans">
@@ -26,6 +26,9 @@ export default function Navbar() {
               </Link>
               <Link className={btn} to="/me/messages">
                 Messages
+              </Link>
+              <Link className={btn} to="/profile">
+                Profile
               </Link>
               <button
                 className={btn}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { api } from "../api/client";
 import { useAuth } from "../store/useAuth";
 import { btn, card } from "../ui";
@@ -7,6 +7,7 @@ import { btn, card } from "../ui";
 export default function BookDetail() {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [book, setBook] = useState(null);
   const [msg, setMsg] = useState("");
 
@@ -20,6 +21,19 @@ export default function BookDetail() {
     catch (e) { setMsg(e?.response?.data?.error || "Request failed"); }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm(`Are you sure you want to delete "${book.title}"?`)) {
+      return;
+    }
+    try {
+      await api.delete(`/api/books/${id}`);
+      setMsg("Book deleted successfully");
+      setTimeout(() => navigate("/my-books"), 1500);
+    } catch (e) {
+      setMsg(e?.response?.data?.message || "Failed to delete book");
+    }
+  };
+
   if(!book) return null;
   const isOwner = user && String(book.owner?._id || book.owner) === String(user.id);
 
@@ -27,13 +41,36 @@ export default function BookDetail() {
     <div className="grid gap-6 md:grid-cols-3">
       <div className={`${card} p-5 md:col-span-2`}>
         <h2 className="text-2xl font-semibold">{book.title}</h2>
-        <p className="text-slate-500">by {book.author || "Unknown"} • {book.city || "—"}</p>
+        <p className="text-slate-500">by {book.author || "Unknown"} • {book.location || "—"}</p>
+        <div className="mt-2 text-sm text-slate-400">
+          Status: <span className={book.status === 'borrowed' ? 'text-orange-600' : 'text-green-600'}>
+            {book.status || 'available'}
+          </span>
+        </div>
         {book.coverUrl && <img src={book.coverUrl} alt="" className="mt-4 w-full rounded-xl border"/>}
         <p className="mt-4 text-slate-800">{book.description || "No description"}</p>
         <div className="mt-2 text-sm text-slate-500">Tags: {(book.tags||[]).join(", ") || "—"}</div>
-        <div className="mt-4">
-          {!isOwner && <button className={btn} onClick={requestBorrow}>Request to Borrow</button>}
-          {isOwner && <div className="text-slate-500">You own this book.</div>}
+        <div className="mt-4 flex gap-2">
+          {!isOwner && book.status === 'available' && (
+            <button className={btn} onClick={requestBorrow}>Request to Borrow</button>
+          )}
+          {!isOwner && book.status === 'borrowed' && (
+            <div className="text-slate-500">This book is currently borrowed.</div>
+          )}
+          {isOwner && (
+            <>
+              <div className="text-slate-500">You own this book.</div>
+              <Link to={`/books/${id}/edit`} className={btn}>Edit</Link>
+              {book.status !== 'borrowed' && (
+                <button 
+                  onClick={handleDelete}
+                  className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              )}
+            </>
+          )}
         </div>
         {msg && <div className="mt-3 rounded-md border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">{msg}</div>}
       </div>

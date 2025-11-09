@@ -8,6 +8,11 @@ import Home from "./pages/Home";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import BookForm from "./pages/BookForm";
+import BookDetail from "./pages/BookDetail";
+import MyBooks from "./pages/MyBooks";
+import EditBook from "./pages/EditBook";
+import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
 import { useAuth } from "./store/useAuth";
 import { pageBg, section } from "./ui";
 
@@ -24,8 +29,13 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
-          {/* Add book uses server /api/books which exists */}
+          <Route path="/books/:id" element={<BookDetail />} />
+          {/* Protected routes */}
           <Route path="/add" element={<ProtectedRoute><BookForm /></ProtectedRoute>} />
+          <Route path="/my-books" element={<ProtectedRoute><MyBooks /></ProtectedRoute>} />
+          <Route path="/books/:id/edit" element={<ProtectedRoute><EditBook /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
