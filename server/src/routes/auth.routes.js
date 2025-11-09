@@ -1,11 +1,12 @@
-import { Router } from 'express';
-import { register, login, me, logout } from '../controllers/auth.controller.js';
-import { requireAuth } from '../middleware/auth.js';
-const r = Router();
+import { Router } from "express";
+import { register, login, me, logout } from "../controllers/auth.controller.js"; // <-- plural 'controllers'
+import { authRequired } from "../middleware/auth.js";
 
+const router = Router();
 
-r.post('/register', register);
-r.post('/login', login);
-r.get('/me', requireAuth, me);
-r.post('/logout', requireAuth, logout);
-export default r;
+router.post("/register", register);
+router.post("/login", login);
+router.get("/me", authRequired, me);
+router.post("/logout", authRequired, logout);
+
+export default router; // default export is required by app.js
