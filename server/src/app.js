@@ -5,6 +5,8 @@ import cors from "cors";
 
 import bookRoutes from "./routes/book.routes.js";
 import authRoutes from "./routes/auth.routes.js"; // <-- make sure this exists and exports default
+import borrowRoutes from "./routes/borrow.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 const app = express();
 
@@ -24,5 +26,7 @@ app.get("/health", (_req, res) => res.json({ ok: true }));
 // MOUNT YOUR ROUTES (order doesn’t matter)
 app.use("/api/auth", authRoutes);     // <-- THIS is what enables /api/auth/*
 app.use("/api/books", bookRoutes);
+app.use("/api/borrows", borrowRoutes);
+app.use("/api/users", userRoutes);
 
 export default app; // keep default export
