@@ -64,3 +64,118 @@ export async function myBorrows(req, res) {
     .sort("-requestedAt");
   res.json(data);
 }
+
+export async function getBorrowById(req, res) {
+  try {
+    const borrow = await Borrow.findById(req.params.id)
+      .populate("book", "title author")
+      .populate("borrower", "name email")
+      .populate("lender", "name email");
+    
+    if (!borrow) {
+      return res.status(404).json({ error: "Borrow record not found" });
+    }
+
+    // Check if user is part of this transaction
+    if (String(borrow.lender._id) !== req.user.id && String(borrow.borrower._id) !== req.user.id) {
+      return res.status(403).json({ error: "Not authorized to view this borrow record" });
+    }
+
+    res.json(borrow);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to fetch borrow record" });
+  }
+}
+
+export async function cancelBorrow(req, res) {
+  try {
+    const { id } = req.params;
+    const borrow = await Borrow.findById(id).populate("book");
+    
+    if (!borrow) {
+      return res.status(404).json({ error: "Borrow record not found" });
+    }
+
+    // Only borrower can cancel, and only if status is 'requested'
+    if (String(borrow.borrower) !== req.user.id) {
+      return res.status(403).json({ error: "Only the borrower can cancel the request" });
+    }
+
+    if (borrow.status !== "requested") {
+      return res.status(400).json({ error: "Can only cancel requests that haven't been approved" });
+    }
+
+    borrow.status = "rejected";
+    await borrow.save();
+    
+    res.json(borrow);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to cancel borrow request" });
+  }
+}
+
+export async function rejectBorrow(req, res) {
+  try {
+    const { id } = req.params;
+    const borrow = await Borrow.findById(id).populate("book");
+    
+    if (!borrow) {
+      return res.status(404).json({ error: "Borrow record not found" });
+    }
+
+    // Only lender can reject
+    if (String(borrow.lender) !== req.user.id) {
+      return res.status(403).json({ error: "Only the lender can reject the request" });
+    }
+
+    if (borrow.status !== "requested") {
+      return res.status(400).json({ error: "Can only reject pending requests" });
+    }
+
+    borrow.status = "rejected";
+    await borrow.save();
+    
+    res.json(borrow);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to reject borrow request" });
+  }
+}
+
+export async function updateBorrowDueDate(req, res) {
+  try {
+    const { id } = req.params;
+    const { dueAt } = req.body;
+    
+    if (!dueAt) {
+      return res.status(400).json({ error: "Due date is required" });
+    }
+
+    const borrow = await Borrow.findById(id);
+    
+    if (!borrow) {
+      return res.status(404).json({ error: "Borrow record not found" });
+    }
+
+    // Only lender can update due date
+    if (String(borrow.lender) !== req.user.id) {
+      return res.status(403).json({ error: "Only the lender can update due date" });
+    }
+
+    // Can only update if borrowed
+    if (borrow.status !== "borrowed" && borrow.status !== "approved") {
+      return res.status(400).json({ error: "Can only update due date for approved or borrowed books" });
+    }
+
+    borrow.dueAt = new Date(dueAt);
+    await borrow.save();
+    
+    res.json(borrow);
+  } catch (e) {
+    console.error(e);
+    res.status(400).json({ error: "Failed to update due date" });
+  }
+}
+

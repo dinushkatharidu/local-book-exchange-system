@@ -76,13 +76,18 @@ export default function Home() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {list.map((b) => (
-            <div key={b._id} className={`${card} p-4`}>
+            <Link key={b._id} to={`/books/${b._id}`} className={`${card} p-4 hover:shadow-lg transition-shadow`}>
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="text-lg font-semibold">{b.title}</div>
                   <div className="text-sm text-slate-500">
                     by {b.author} • {b.location || "—"} • {b.condition}
                   </div>
+                  {b.owner?.name && (
+                    <div className="text-xs text-slate-400 mt-1">
+                      Owner: {b.owner.name}
+                    </div>
+                  )}
                   {b.description && (
                     <p className="mt-2 text-slate-700">
                       {b.description.slice(0, 140)}
@@ -90,7 +95,7 @@ export default function Home() {
                   )}
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
